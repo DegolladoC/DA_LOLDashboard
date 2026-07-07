@@ -1,1 +1,17 @@
 *:Zone.Identifier
+
+# Entornos y secretos
+.env
+backend/.env
+backend/venv/
+backend/__pycache__/
+*.pyc
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Cache de partidas
+backend/cache/
+*.sqlite
+*.sqlite3
