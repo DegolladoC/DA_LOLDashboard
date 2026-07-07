@@ -16,6 +16,10 @@ Ingresar un Riot ID (`Nombre#TAG`), traer sus últimas N partidas, agregarlas y 
 evolución del rendimiento. "Tiempo real" = polling periódico que detecta partidas nuevas y, si
 está en juego, muestra la partida activa.
 
+**Meta extra de aprendizaje:** la caché del backend usa SQLite a propósito — es la primera vez que
+implemento SQL en un proyecto real, así que esa parte (`backend/cache.py`) la construyo paso a
+paso, no de un jalón.
+
 ## ⚠️ Lo primero: la API key
 
 1. Entra a **https://developer.riotgames.com** y haz login con tu cuenta de Riot.
@@ -64,7 +68,7 @@ Autenticación: header `X-Riot-Token: <TU_API_KEY>` en cada llamada (Data Dragon
 | Backend (proxy) | FastAPI (Python) o Express (Node) | Esconde la key, cachea, maneja rate limits |
 | Frontend | React + Vite + TypeScript | Tu terreno conocido |
 | Gráficas | Recharts | Rápido de armar, se ve bien |
-| Caché | Archivo/JSON o SQLite al inicio; Redis si escala | Evitar quemar el rate limit |
+| Caché | **SQLite** (`backend/cache.db`); Redis si escala | Evitar quemar el rate limit — y de paso, práctica de SQL real |
 
 > El backend es obligatorio: es lo que protege tu API key y controla el rate limit. El frontend
 > nunca habla con Riot directo.

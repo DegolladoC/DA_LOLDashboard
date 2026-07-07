@@ -1,1 +1,21 @@
 *:Zone.Identifier
+
+# backend
+backend/.env
+backend/venv/
+backend/cache.db
+**/__pycache__/
+*.pyc
+
+# frontend
+frontend/node_modules/
+frontend/dist/
+
+# outputs sueltos de pruebas manuales con curl (raíz del repo)
+/account.json
+/matchids.json
+/summoner.json
+/match_detail.json
+
+# recordatorios locales (ver ~/.bash_aliases), no son parte del proyecto
+.reminder

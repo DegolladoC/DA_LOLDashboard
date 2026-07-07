@@ -29,7 +29,10 @@ para su negocio SNAPP.
 - Dev key: ~20 req/s y ~100 req/2min (los valores reales llegan en headers `X-App-Rate-Limit*`;
   son dinámicos). Leer esos headers y respetarlos.
 - **Cachear todo lo inmutable:** una partida terminada nunca cambia → guardar su detalle y no
-  volver a pedirlo. Empezar con caché en archivo/SQLite; Redis solo si de verdad escala.
+  volver a pedirlo. Caché en **SQLite** (`backend/cache.db`, tabla `matches` por `match_id`);
+  Redis solo si de verdad escala. Elección deliberada (no solo "para empezar simple"): el usuario
+  la está usando como proyecto de aprendizaje de SQL, así que el desarrollo de `cache.py` va
+  guiado paso a paso con él en vez de generarse de un jalón — ver sección "Proceso de desarrollo".
 - **Paginar:** traer 5–10 partidas por lote, no 50 de golpe.
 - Ante **429**: exponential backoff con jitter y reintento; nunca reintentar en bucle inmediato.
 - No hacer las requests de detalle en un `for` secuencial sin límite: agrupar con control de
@@ -41,7 +44,8 @@ para su negocio SNAPP.
 backend/
   main.py            # FastAPI: expone endpoints propios al frontend
   riot_client.py     # cliente httpx hacia Riot: routing, headers, backoff
-  cache.py           # caché de partidas (archivo/SQLite)
+  cache.py           # caché de partidas en SQLite (tabla matches, por match_id)
+  cache.db           # base SQLite (git-ignored, se regenera sola)
   aggregate.py       # transforma partidas crudas -> métricas (winrate, KDA, CS/min...)
   .env               # RIOT_API_KEY (git-ignored)
 frontend/
@@ -70,6 +74,9 @@ agregados y listos para graficar. Toda la lógica de Riot y agregación vive en 
 cd backend && source venv/bin/activate
 uvicorn main:app --reload
 
+# actualizar la RIOT_API_KEY cada 24h (la pide oculta, la valida contra Riot antes de guardarla)
+make setkey   # atajo (Makefile en la raíz); por debajo corre: cd backend && ./venv/bin/python3 set_api_key.py
+
 # frontend
 cd frontend && npm run dev
 ```
@@ -79,6 +86,18 @@ cd frontend && npm run dev
 - `GET /api/player/{name}/{tag}` → perfil + resumen agregado.
 - `GET /api/player/{name}/{tag}/matches?start=0&count=5` → partidas paginadas (agregadas).
 - `GET /api/player/{name}/{tag}/live` → SPECTATOR-V5 si aplica, si no 204.
+
+## Proceso de desarrollo — `cache.py` / SQL
+
+Esta es la primera vez que el usuario implementa SQLite/SQL en un proyecto real; lo eligió aquí
+a propósito para aprenderlo. Por eso, al tocar `cache.py` o cualquier schema/query SQL:
+
+- No generar el archivo completo de un jalón. Proponer el schema primero y explicar el porqué
+  (ej. por qué `match_id` es la llave primaria, por qué cachear el JSON crudo de la partida).
+- Escribir las queries de una en una, explicando qué hace cada una antes de escribirla.
+- Dejar que el usuario corra/pruebe cada pieza antes de seguir con la siguiente.
+- El resto del backend (`riot_client.py`, `aggregate.py`, `main.py`) sí se puede construir a ritmo
+  normal, salvo que el usuario pida lo mismo ahí.
 
 ## Qué NO hacer
 
